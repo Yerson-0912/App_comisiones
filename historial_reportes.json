@@ -1,0 +1,23 @@
+{
+  "reportes": [
+    {
+      "id": 1,
+      "tipo": "ventas",
+      "consecutivo": "VEN-000000",
+      "archivo": "VEN-000000_Reporte_Ventas.xlsx",
+      "usuario": "admin",
+      "fecha": "2026-01-29T18:37:43.579640",
+      "descargado": false
+    },
+    {
+      "id": 2,
+      "tipo": "ventas",
+      "consecutivo": "VEN-000001",
+      "archivo": "VEN-000001_Reporte_Ventas.xlsx",
+      "usuario": "admin",
+      "fecha": "2026-01-29T19:02:13.657606",
+      "descargado": false
+    }
+  ],
+  "fecha_creacion": "2026-01-29T00:00:00"
+}

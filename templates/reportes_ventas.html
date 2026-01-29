@@ -1,0 +1,276 @@
+{% extends "base.html" %}
+
+{% block title %}Reportes de Ventas - Panel de Comisiones{% endblock %}
+
+{% block content %}
+<style>
+    .vendedor-card {
+        background: #f8f9fa;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        overflow: hidden;
+    }
+    
+    .vendedor-header {
+        padding: 15px 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        cursor: pointer;
+        background: #f0f4f8;
+        border-bottom: 1px solid #e0e0e0;
+        transition: background 0.2s;
+    }
+    
+    .vendedor-header:hover {
+        background: #e8ecf1;
+    }
+    
+    .vendedor-header-content {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex: 1;
+    }
+    
+    .toggle-btn {
+        width: 32px;
+        height: 32px;
+        min-width: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #667eea;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: transform 0.2s, background 0.2s;
+    }
+    
+    .toggle-btn:hover {
+        background: #5568d3;
+    }
+    
+    .toggle-btn.expanded {
+        transform: rotate(180deg);
+    }
+    
+    .vendedor-info {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        flex: 1;
+    }
+    
+    .info-item {
+        text-align: left;
+    }
+    
+    .info-label {
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 4px;
+    }
+    
+    .info-value {
+        font-size: 18px;
+        font-weight: bold;
+        color: #333;
+    }
+    
+    .vendedor-body {
+        display: none;
+        padding: 20px;
+        background: white;
+    }
+    
+    .vendedor-body.expanded {
+        display: block;
+    }
+    
+    .clientes-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+    
+    .clientes-table thead {
+        background: #667eea;
+    }
+    
+    .clientes-table th {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 2px solid #5568d3;
+        font-weight: 600;
+        font-size: 13px;
+        color: white;
+    }
+    
+    .clientes-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .clientes-table tbody tr:hover {
+        background: #f9f9f9;
+    }
+    
+    .download-btn {
+        padding: 8px 16px;
+        background: #28a745;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        transition: background 0.2s;
+    }
+    
+    .download-btn:hover {
+        background: #218838;
+    }
+</style>
+
+<div class="card">
+    <h2>Reportes de Ventas y Comisiones</h2>
+    
+    {% if datos %}
+        <!-- Resumen por Vendedor (Expandible) -->
+        {% for row in datos %}
+        <div class="vendedor-card">
+            <div class="vendedor-header" onclick="toggleVendedor(this)">
+                <div class="vendedor-header-content">
+                    <button class="toggle-btn" onclick="event.stopPropagation();">+</button>
+                    <div class="vendedor-info">
+                        <div class="info-item">
+                            <div class="info-label">Vendedor</div>
+                            <div class="info-value">{{ row.get('vendedor', row.get('Vendedor', 'N/A')) }}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Total Venta</div>
+                            <div class="info-value" style="color: #667eea;">${{ "{:,.2f}".format(row.get('total_neto', 0)) }}</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Unidades</div>
+                            <div class="info-value">{{ row.get('total_cantidad', 0)|int }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="vendedor-body">
+                <div style="margin-bottom: 20px;">
+                    <h4 style="margin-top: 0; color: #333;">Detalles por Cliente</h4>
+                    {% set vendedor_clientes = datos_clientes|selectattr('vendedor', 'equalto', row.get('vendedor', 'N/A'))|list %}
+                    {% if vendedor_clientes %}
+                        <table class="clientes-table">
+                            <thead>
+                                <tr>
+                                    <th>Cliente</th>
+                                    <th>Cliente ID</th>
+                                    <th>Total Bruto</th>
+                                    <th>Descuentos</th>
+                                    <th>Total Neto</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for cliente in vendedor_clientes %}
+                                <tr>
+                                    <td>{{ cliente.get('cliente', 'N/A') }}</td>
+                                    <td style="font-size: 12px; color: #666;">{{ cliente.get('cliente_id', '') }}</td>
+                                    <td>${{ "{:,.2f}".format(cliente.get('total_bruto', 0)) }}</td>
+                                    <td style="color: #dc3545;">${{ "{:,.2f}".format(cliente.get('total_descuentos', 0)) }}</td>
+                                    <td style="font-weight: 600;">${{ "{:,.2f}".format(cliente.get('total_neto', 0)) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <div style="padding: 15px; background: #f5f5f5; border-radius: 6px; color: #666;">
+                            No hay datos de clientes para este vendedor.
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div style="text-align: right;">
+                    {% if reporte_clientes %}
+                        <a href="/descargar/{{ reporte_clientes }}" class="download-btn">📥 Descargar Informe por Cliente</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+
+        
+        {% set total_bruto = datos|map(attribute='total_bruto')|sum %}
+        {% set total_descuentos = datos|map(attribute='total_descuentos')|sum %}
+        {% set total_neto = datos|map(attribute='total_neto')|sum %}
+        {% set total_comisiones = datos|map(attribute='comision_total')|sum %}
+        {% set total_unidades = datos|map(attribute='total_cantidad')|sum %}
+        
+        <div style="margin-top: 30px; padding: 20px; background: #1e293b; border-radius: 12px; color: white;">
+            <h3 style="margin: 0 0 15px 0; text-align: center; font-size: 24px;">Resumen Total</h3>
+            <div class="grid" style="gap: 15px;">
+                <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 8px; text-align: center;">
+                    <div style="font-size: 14px; opacity: 0.9; margin-bottom: 5px;">TOTAL PRODUCTOS VENDIDOS</div>
+                    <div style="font-size: 32px; font-weight: bold;">{{ "{:,}".format(total_unidades|int) }}</div>
+                    <div style="font-size: 12px; opacity: 0.8; margin-top: 5px;">unidades</div>
+                </div>
+                    <div style="background: rgba(255,255,255,0.12); padding: 20px; border-radius: 8px; text-align: center; border: 1px solid rgba(255,255,255,0.2);">
+                        <div style="font-size: 14px; opacity: 0.9; margin-bottom: 5px;">TOTAL VENTA COMISIONABLE</div>
+                    <div style="font-size: 36px; font-weight: bold;">${{ "{:,.2f}".format(total_neto) }}</div>
+                    <div style="font-size: 12px; opacity: 0.8; margin-top: 5px;">Valor neto (bruto - descuentos)</div>
+                </div>
+                    <div style="background: rgba(255,255,255,0.12); padding: 20px; border-radius: 8px; text-align: center; border: 1px solid rgba(255,255,255,0.2);">
+                        <div style="font-size: 14px; opacity: 0.9; margin-bottom: 5px;">TOTAL COMISIONES GENERADAS</div>
+                    <div style="font-size: 36px; font-weight: bold;">${{ "{:,.2f}".format(total_comisiones) }}</div>
+                    <div style="font-size: 12px; opacity: 0.8; margin-top: 5px;">{{ "%.2f"|format((total_comisiones/total_neto*100) if total_neto > 0 else 0) }}% del total</div>
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center;">
+                <div style="font-size: 12px; color: #666; margin-bottom: 5px;">Total Bruto</div>
+                <div style="font-size: 20px; font-weight: bold; color: #333;">${{ "{:,.2f}".format(total_bruto) }}</div>
+            </div>
+            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center;">
+                <div style="font-size: 12px; color: #666; margin-bottom: 5px;">Total Descuentos</div>
+                <div style="font-size: 20px; font-weight: bold; color: #dc3545;">${{ "{:,.2f}".format(total_descuentos) }}</div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 30px; text-align: center;">
+            <a href="/historial?tipo=ventas" class="btn">Ver historial de ventas</a>
+        </div>
+    {% else %}
+        <div style="padding: 40px; text-align: center; background: #f8f9fa; border-radius: 8px;">
+            <p style="color: #666; font-size: 18px; margin-bottom: 20px;">
+                No hay un reporte seleccionado. Ve al historial para abrir un reporte ya generado.
+            </p>
+            <a href="/historial?tipo=ventas" class="btn">Ver historial de ventas</a>
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function toggleVendedor(element) {
+    const body = element.nextElementSibling;
+    const btn = element.querySelector('.toggle-btn');
+    
+    if (body.classList.contains('expanded')) {
+        body.classList.remove('expanded');
+        btn.classList.remove('expanded');
+    } else {
+        body.classList.add('expanded');
+        btn.classList.add('expanded');
+    }
+}
+</script>
+{% endblock %}

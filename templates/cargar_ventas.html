@@ -1,0 +1,429 @@
+{% extends "base.html" %}
+
+{% block title %}Cargar Ventas - Panel de Comisiones{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Cargar Datos de Ventas</h2>
+    <p style="color: #666; margin-top: 10px;">
+        Sube un archivo CSV o Excel con los datos de ventas. El sistema calculará automáticamente las comisiones.
+    </p>
+    
+    <form method="POST" enctype="multipart/form-data" style="margin-top: 30px;">
+        <div class="form-group">
+            <label for="archivo">Selecciona archivo (CSV o XLSX):</label>
+            <input type="file" id="archivo" name="archivo" accept=".csv,.xlsx,.xls" required>
+            <small style="color: #666; display: block; margin-top: 5px;">
+                Formato máximo: 50MB
+            </small>
+        </div>
+        
+        <div class="form-group">
+            <h4 style="color: #1d4ed8; margin-bottom: 15px;">Columnas Requeridas:</h4>
+            <table style="width: 100%; margin-bottom: 20px;">
+                <thead>
+                    <tr style="background: #f0f0f0;">
+                        <th style="text-align: left; padding: 10px; border: 1px solid #ddd;">Columna</th>
+                        <th style="text-align: left; padding: 10px; border: 1px solid #ddd;">Descripción</th>
+                        <th style="text-align: left; padding: 10px; border: 1px solid #ddd;">Ejemplo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ddd;"><strong>vendedor</strong></td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">Nombre del vendedor</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">KAREN TORRADO</td>
+                    </tr>
+                    <tr style="background: #f9f9f9;">
+                        <td style="padding: 10px; border: 1px solid #ddd;"><strong>monto</strong></td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">Monto de la venta</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">15000000</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ddd;"><strong>cantidad</strong></td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">Cantidad de unidades</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">100</td>
+                    </tr>
+                    <tr style="background: #f9f9f9;">
+                        <td style="padding: 10px; border: 1px solid #ddd;"><strong>producto</strong></td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">Tipo de producto</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">Monturas</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ddd;"><strong>cliente</strong></td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">Nombre del cliente (opcional)</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">IMEVI S.A.S</td>
+                    </tr>
+                    <tr style="background: #f9f9f9;">
+                        <td style="padding: 10px; border: 1px solid #ddd;"><strong>descuento</strong></td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">Descuento aplicado (opcional)</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">500000</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ddd;"><strong>flete</strong></td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">Costo de flete (opcional)</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">200000</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="form-group">
+            <h4 style="color: #1d4ed8; margin-bottom: 15px;">Vendedores Configurados:</h4>
+            <ul style="margin-left: 20px; line-height: 1.8;">
+                <li><strong>KAREN TORRADO:</strong> 1.5% ($0-$199.999.999), 2% ($200.000.000-$249.999.999), 2.5% ($250.000.000-$300.000.000)</li>
+                <li><strong>NATALIA REYES:</strong> 0% ($0-$5.000.000), 2% ($5.000.001-$10.000.000), 3% ($10.000.001-$20.000.000), 4% ($20.000.001-$30.000.000), 5% ($30.000.001+)<br>
+                    <span style="margin-left: 20px; color: #666; font-size: 0.9em;">• Clientes especiales: IMEVI y Familia al 2% fijo</span></li>
+                <li><strong>JOSE ALFREDO FAJARDO:</strong> 1% ($0-$75M), 2% ($75M+)</li>
+                <li><strong>JHONATAN/JONATHAN VASQUEZ:</strong> 1% ($0-$75M), 2% ($75M+)</li>
+            </ul>
+            <p style="margin-top: 15px; color: #b91c1c; font-weight: 600;">
+                La comisión se calcula sobre el SUBTOTAL (Monto - Descuento - Flete)
+            </p>
+        </div>
+        
+        <button type="submit" class="btn" style="margin-top: 20px; align-self: flex-start;">
+            Subir y Procesar
+        </button>
+    </form>
+</div>
+
+<div class="card">
+    <h3>Formato de Ejemplo:</h3>
+    <p style="color: #666; margin-bottom: 10px;">Aquí hay un ejemplo de cómo debe verse tu archivo:</p>
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>vendedor</th>
+                    <th>monto</th>
+                    <th>cantidad</th>
+                    <th>producto</th>
+                    <th>cliente</th>
+                    <th>descuento</th>
+                    <th>flete</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>KAREN TORRADO</td>
+                    <td>150000000</td>
+                    <td>500</td>
+                    <td>Monturas</td>
+                    <td>SERVIOPTICA S.A.S</td>
+                    <td>5000000</td>
+                    <td>500000</td>
+                </tr>
+                <tr>
+                    <td>NATALIA REYES</td>
+                    <td>25000000</td>
+                    <td>300</td>
+                    <td>Lentes</td>
+                    <td>IMEVI S.A.S</td>
+                    <td>1000000</td>
+                    <td>200000</td>
+                </tr>
+                <tr>
+                    <td>JOSE ALFREDO FAJARDO</td>
+                    <td>80000000</td>
+                    <td>400</td>
+                    <td>Accesorios</td>
+                    <td>OPTICA COLSANITAS S.A.S</td>
+                    <td>2000000</td>
+                    <td>300000</td>
+                </tr>
+                <tr>
+                    <td>JHONATAN VASQUEZ</td>
+                    <td>50000000</td>
+                    <td>200</td>
+                    <td>Monturas</td>
+                    <td>OFTALMOLOGOS ASOCIADOS</td>
+                    <td>1500000</td>
+                    <td>250000</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal para comentarios de consecutivos -->
+{% if mostrar_modal and alertas_consecutivos %}
+<div id="modalComentarios" class="modal-overlay active">
+    <div class="modal-contenido">
+        <div class="modal-header">
+            <h2>⚠️ Saltos Detectados en Consecutivos</h2>
+            <button class="modal-close" onclick="cerrarModal()">&times;</button>
+        </div>
+        
+        <div class="modal-body">
+            <p style="color: #666; margin-bottom: 20px;">
+                Se han detectado los siguientes saltos en los números de factura. Por favor, deja un comentario explicando la razón:
+            </p>
+            
+            {% for alerta in alertas_consecutivos %}
+            <div class="alerta-consecutivo">
+                <div class="alerta-header">
+                    <h4>{{ alerta.prefijo }}{{ "%05d" % alerta.desde }} → {{ alerta.prefijo }}{{ "%05d" % alerta.hasta }}</h4>
+                    <span class="alerta-salto">Faltan {{ alerta.salto - 1 }} facturas</span>
+                </div>
+                
+                <textarea 
+                    class="comentario-input" 
+                    placeholder="Explica el motivo del salto (ej: Paso a otra empresa, continuidad de otra sucursal, etc.)"
+                    data-prefijo="{{ alerta.prefijo }}"
+                    data-desde="{{ alerta.desde }}"
+                    data-hasta="{{ alerta.hasta }}"
+                    data-salto="{{ alerta.salto }}"
+                    required></textarea>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
+            <button class="btn btn-primary" onclick="guardarComentarios()">Guardar Comentarios y Continuar</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .modal-overlay.active {
+        display: flex;
+    }
+    
+    .modal-contenido {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        max-width: 600px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+    
+    .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px;
+        border-bottom: 1px solid #e0e0e0;
+        background: #f8f9fa;
+    }
+    
+    .modal-header h2 {
+        margin: 0;
+        color: #dc3545;
+        font-size: 20px;
+    }
+    
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 28px;
+        cursor: pointer;
+        color: #666;
+        padding: 0;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .modal-close:hover {
+        color: #333;
+    }
+    
+    .modal-body {
+        padding: 20px;
+    }
+    
+    .alerta-consecutivo {
+        background: #fff3cd;
+        border: 1px solid #ffc107;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .alerta-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+    }
+    
+    .alerta-header h4 {
+        margin: 0;
+        color: #333;
+        font-family: 'Courier New', monospace;
+        font-size: 16px;
+    }
+    
+    .alerta-salto {
+        background: #dc3545;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    
+    .comentario-input {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+        font-family: inherit;
+        resize: vertical;
+        min-height: 80px;
+        box-sizing: border-box;
+    }
+    
+    .comentario-input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .modal-footer {
+        display: flex;
+        gap: 10px;
+        padding: 15px 20px;
+        border-top: 1px solid #e0e0e0;
+        background: #f8f9fa;
+        justify-content: flex-end;
+    }
+    
+    .btn-primary {
+        background: #667eea;
+        color: white;
+    }
+    
+    .btn-primary:hover {
+        background: #5568d3;
+    }
+    
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+        border: none;
+    }
+    
+    .btn-secondary:hover {
+        background: #5a6268;
+    }
+</style>
+
+<script>
+function cerrarModal() {
+    document.getElementById('modalComentarios').classList.remove('active');
+}
+
+function guardarComentarios() {
+    const comentarios = document.querySelectorAll('.comentario-input');
+    const todosCompletados = true;
+    
+    // Validar que todos los comentarios tengan contenido
+    for (let textarea of comentarios) {
+        if (!textarea.value.trim()) {
+            alert('Por favor completa todos los comentarios antes de continuar');
+            textarea.focus();
+            return;
+        }
+    }
+    
+    // Mostrar loader
+    const btnGuardar = event.target;
+    const textoOriginal = btnGuardar.textContent;
+    btnGuardar.disabled = true;
+    btnGuardar.textContent = 'Guardando...';
+    
+    // Crear promesa para guardar todos los comentarios
+    const promesas = Array.from(comentarios).map(textarea => {
+        const prefijo = textarea.getAttribute('data-prefijo');
+        const desde = parseInt(textarea.getAttribute('data-desde'));
+        const hasta = parseInt(textarea.getAttribute('data-hasta'));
+        const salto = parseInt(textarea.getAttribute('data-salto'));
+        const comentario = textarea.value.trim();
+        
+        return fetch('/guardar-comentario-consecutivo', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                prefijo: prefijo,
+                desde: desde,
+                hasta: hasta,
+                salto: salto,
+                comentario: comentario
+            })
+        });
+    });
+    
+    // Esperar a que todos los comentarios se guarden
+    Promise.all(promesas)
+        .then(respuestas => {
+            // Verificar que todas las respuestas sean exitosas
+            return Promise.all(respuestas.map(r => r.json()));
+        })
+        .then(datos => {
+            // Si todos se guardaron correctamente, procesar el reporte
+            const todosExito = datos.every(d => d.success);
+            
+            if (todosExito) {
+                // Procesar el reporte después de guardar comentarios
+                return fetch('/procesar-reporte-ventas', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+            } else {
+                throw new Error('Error al guardar algunos comentarios');
+            }
+        })
+        .then(response => response.json())
+        .then(datos => {
+            if (datos.success) {
+                alert('Comentarios guardados y reporte procesado correctamente');
+                // Redirigir al reporte
+                window.location.href = datos.redirect;
+            } else {
+                alert('Error: ' + datos.message);
+                btnGuardar.disabled = false;
+                btnGuardar.textContent = textoOriginal;
+            }
+        })
+        .catch(error => {
+            alert('Error: ' + error.message);
+            btnGuardar.disabled = false;
+            btnGuardar.textContent = textoOriginal;
+        });
+}
+
+// Mostrar modal automáticamente si hay alertas
+window.addEventListener('load', function() {
+    const modal = document.getElementById('modalComentarios');
+    if (modal) {
+        modal.classList.add('active');
+    }
+});
+</script>
+{% endif %}
+{% endblock %}

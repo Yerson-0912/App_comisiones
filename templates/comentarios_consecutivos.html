@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Comentarios de Consecutivos - Panel de Comisiones{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>📋 Registro de Comentarios de Consecutivos</h2>
+    <p style="color: #666; margin-top: 10px;">
+        Historial de comentarios sobre los saltos detectados en números de factura.
+    </p>
+    
+    {% if comentarios %}
+        <div style="margin-top: 20px; padding: 15px; background: #e8f5e9; border-radius: 8px; color: #2e7d32; border: 1px solid #81c784;">
+            <strong>✓ Total de comentarios registrados:</strong> {{ total_comentarios }}
+        </div>
+        
+        {% for clave, grupo in comentarios_agrupados.items() %}
+        <div style="margin-top: 25px; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
+            <div style="background: #f5f5f5; padding: 15px; border-bottom: 2px solid #667eea;">
+                <h4 style="margin: 0; color: #333; font-family: 'Courier New', monospace; font-size: 16px;">
+                    {{ grupo.prefijo }}{{ "%05d" % grupo.desde }} → {{ grupo.prefijo }}{{ "%05d" % grupo.hasta }}
+                </h4>
+                <div style="margin-top: 8px; display: flex; gap: 15px; font-size: 13px;">
+                    <span style="background: #dc3545; color: white; padding: 4px 10px; border-radius: 4px;">
+                        Faltan {{ grupo.salto - 1 }} facturas
+                    </span>
+                    <span style="color: #666;">
+                        {{ grupo.comentarios|length }} comentario(s)
+                    </span>
+                </div>
+            </div>
+            
+            <div style="padding: 15px;">
+                {% for comentario in grupo.comentarios %}
+                <div style="background: {% if loop.index % 2 == 0 %}#f9f9f9{% else %}white{% endif %}; padding: 12px; margin-bottom: 10px; border-radius: 6px; border-left: 4px solid #667eea;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                        <div>
+                            <strong style="color: #333;">{{ comentario.usuario }}</strong>
+                            <span style="color: #999; font-size: 12px; margin-left: 10px;">{{ comentario.fecha_hora }}</span>
+                        </div>
+                        <span style="background: #667eea; color: white; padding: 3px 8px; border-radius: 3px; font-size: 11px;">
+                            ID: {{ comentario.id }}
+                        </span>
+                    </div>
+                    <div style="background: white; padding: 10px; border-radius: 4px; border: 1px solid #e0e0e0; color: #333; line-height: 1.5;">
+                        {{ comentario.comentario }}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+        
+    {% else %}
+        <div style="margin-top: 20px; padding: 40px; text-align: center; background: #f8f9fa; border-radius: 8px;">
+            <p style="color: #666; font-size: 16px; margin: 0;">
+                No hay comentarios registrados aún.
+            </p>
+            <p style="color: #999; font-size: 14px; margin-top: 10px;">
+                Los comentarios aparecerán aquí cuando se detecten saltos en los consecutivos de facturas.
+            </p>
+        </div>
+    {% endif %}
+    
+    <div style="margin-top: 30px; text-align: center;">
+        <a href="/cargar-ventas" class="btn">← Volver a Cargar Ventas</a>
+    </div>
+</div>
+
+<style>
+    .btn {
+        display: inline-block;
+        padding: 10px 20px;
+        background: #667eea;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        text-decoration: none;
+        font-weight: 600;
+        transition: background 0.2s;
+    }
+    
+    .btn:hover {
+        background: #5568d3;
+    }
+</style>
+{% endblock %}
