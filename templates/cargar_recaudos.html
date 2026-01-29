@@ -9,13 +9,40 @@
         Sube un archivo CSV o Excel con los datos de recaudos. El sistema calculará automáticamente las comisiones.
     </p>
     
-    <form method="POST" enctype="multipart/form-data" style="margin-top: 30px;">
+    <form method="POST" enctype="multipart/form-data" style="margin-top: 30px;" id="uploadForm">
         <div class="form-group">
             <label for="archivo">Selecciona archivo (CSV o XLSX):</label>
             <input type="file" id="archivo" name="archivo" accept=".csv,.xlsx,.xls" required>
             <small style="color: #666; display: block; margin-top: 5px;">
                 Formato máximo: 50MB
             </small>
+            
+            <!-- Información del archivo seleccionado -->
+            <div id="fileInfo" style="display: none; margin-top: 15px; padding: 12px; background: #f0f9ff; border-left: 4px solid #1d4ed8; border-radius: 4px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <svg width="24" height="24" fill="#1d4ed8" viewBox="0 0 24 24">
+                        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                    </svg>
+                    <div style="flex: 1;">
+                        <div id="fileName" style="font-weight: 600; color: #1e293b;"></div>
+                        <div id="fileSize" style="font-size: 0.9em; color: #64748b;"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Barra de progreso -->
+            <div id="progressContainer" style="display: none; margin-top: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-weight: 600; color: #1e293b;">Subiendo archivo...</span>
+                    <span id="progressPercent" style="font-weight: 600; color: #1d4ed8;">0%</span>
+                </div>
+                <div style="width: 100%; height: 30px; background: #e2e8f0; border-radius: 15px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);">
+                    <div id="progressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #1d4ed8 0%, #3b82f6 100%); transition: width 0.3s ease; display: flex; align-items: center; justify-content: flex-end; padding-right: 10px; box-sizing: border-box;">
+                        <span style="color: white; font-weight: 600; font-size: 0.85em; text-shadow: 0 1px 2px rgba(0,0,0,0.2);"></span>
+                    </div>
+                </div>
+                <div id="progressStatus" style="margin-top: 8px; font-size: 0.9em; color: #64748b; text-align: center;"></div>
+            </div>
         </div>
         
         <div class="form-group">
@@ -62,11 +89,132 @@
             </ul>
         </div>
         
-        <button type="submit" class="btn" style="margin-top: 20px; align-self: flex-start;">
+        <button type="submit" class="btn" id="submitBtn" style="margin-top: 20px; align-self: flex-start;">
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24" style="vertical-align: middle; margin-right: 8px;">
+                <path d="M9,16V10H5L12,3L19,10H15V16H9M5,20V18H19V20H5Z"/>
+            </svg>
             Subir y Procesar
         </button>
     </form>
 </div>
+
+<script>
+// Manejo de selección de archivo
+document.getElementById('archivo').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    const fileInfo = document.getElementById('fileInfo');
+    const fileName = document.getElementById('fileName');
+    const fileSize = document.getElementById('fileSize');
+    
+    if (file) {
+        fileName.textContent = file.name;
+        const sizeMB = (file.size / (1024 * 1024)).toFixed(2);
+        fileSize.textContent = `Tamaño: ${sizeMB} MB`;
+        fileInfo.style.display = 'block';
+    } else {
+        fileInfo.style.display = 'none';
+    }
+});
+
+// Manejo del formulario con barra de progreso
+document.getElementById('uploadForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const progressContainer = document.getElementById('progressContainer');
+    const progressBar = document.getElementById('progressBar');
+    const progressPercent = document.getElementById('progressPercent');
+    const progressStatus = document.getElementById('progressStatus');
+    const submitBtn = document.getElementById('submitBtn');
+    const fileInput = document.getElementById('archivo');
+    
+    // Deshabilitar botón y mostrar barra de progreso
+    submitBtn.disabled = true;
+    submitBtn.style.opacity = '0.6';
+    submitBtn.style.cursor = 'not-allowed';
+    fileInput.disabled = true;
+    progressContainer.style.display = 'block';
+    progressStatus.textContent = 'Preparando archivo...';
+    
+    // Crear XMLHttpRequest para seguir el progreso
+    const xhr = new XMLHttpRequest();
+    
+    // Actualizar barra de progreso
+    xhr.upload.addEventListener('progress', function(e) {
+        if (e.lengthComputable) {
+            const percentComplete = Math.round((e.loaded / e.total) * 100);
+            progressBar.style.width = percentComplete + '%';
+            progressPercent.textContent = percentComplete + '%';
+            
+            if (percentComplete < 30) {
+                progressStatus.textContent = 'Subiendo archivo...';
+            } else if (percentComplete < 70) {
+                progressStatus.textContent = 'Procesando datos...';
+            } else if (percentComplete < 100) {
+                progressStatus.textContent = 'Casi listo...';
+            }
+        }
+    });
+    
+    // Cuando la carga se complete
+    xhr.addEventListener('load', function() {
+        if (xhr.status === 200 || xhr.status === 302) {
+            progressBar.style.width = '100%';
+            progressPercent.textContent = '100%';
+            progressBar.style.background = 'linear-gradient(90deg, #059669 0%, #10b981 100%)';
+            progressStatus.innerHTML = '<span style="color: #059669;">✓ Archivo procesado exitosamente</span>';
+            
+            // Redirigir después de un momento
+            setTimeout(() => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(xhr.responseText, 'text/html');
+                const metaRedirect = doc.querySelector('meta[http-equiv="refresh"]');
+                
+                if (metaRedirect) {
+                    const content = metaRedirect.getAttribute('content');
+                    const urlMatch = content.match(/url=(.+)/);
+                    if (urlMatch) {
+                        window.location.href = urlMatch[1];
+                        return;
+                    }
+                }
+                
+                if (xhr.responseURL && xhr.responseURL !== window.location.href) {
+                    window.location.href = xhr.responseURL;
+                } else {
+                    const redirectMatch = xhr.responseText.match(/window\.location\.href\s*=\s*['"]([^'"]+)['"]/);
+                    if (redirectMatch) {
+                        window.location.href = redirectMatch[1];
+                    } else {
+                        window.location.reload();
+                    }
+                }
+            }, 800);
+        } else {
+            progressBar.style.background = 'linear-gradient(90deg, #dc2626 0%, #ef4444 100%)';
+            progressStatus.innerHTML = '<span style="color: #dc2626;">✗ Error al procesar archivo</span>';
+            submitBtn.disabled = false;
+            submitBtn.style.opacity = '1';
+            submitBtn.style.cursor = 'pointer';
+            fileInput.disabled = false;
+        }
+    });
+    
+    // Manejar errores
+    xhr.addEventListener('error', function() {
+        progressBar.style.background = 'linear-gradient(90deg, #dc2626 0%, #ef4444 100%)';
+        progressStatus.innerHTML = '<span style="color: #dc2626;">✗ Error de conexión</span>';
+        submitBtn.disabled = false;
+        submitBtn.style.opacity = '1';
+        submitBtn.style.cursor = 'pointer';
+        fileInput.disabled = false;
+    });
+    
+    // Enviar petición
+    xhr.open('POST', this.action || window.location.href, true);
+    xhr.send(formData);
+});
+</script>
 
 <div class="card">
     <h3>Formato de Ejemplo:</h3>

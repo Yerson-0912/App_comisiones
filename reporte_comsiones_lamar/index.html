@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Liquidación de Comisiones</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  </head>
+  <body>
+    <main class="container">
+      <header>
+        <h1>Liquidación mensual de comisiones</h1>
+        <p>Carga los Excel de facturas, define el porcentaje y genera el reporte por vendedor.</p>
+      </header>
+
+      <section class="card controls">
+        <div class="field">
+          <label for="fileRueda">Excel INVERSIONES RUEDA SAS</label>
+          <input id="fileRueda" type="file" accept=".xlsx,.xls,.csv" />
+        </div>
+
+        <div class="field">
+          <label for="fileLamar">Excel LAMAR OPTICAL SAS</label>
+          <input id="fileLamar" type="file" accept=".xlsx,.xls,.csv" />
+        </div>
+
+        <div class="field">
+          <label for="fileAbelardo">Excel ABELARDO</label>
+          <input id="fileAbelardo" type="file" accept=".xlsx,.xls,.csv" />
+        </div>
+
+        <div class="field">
+          <label for="commissionRate">% Comisión</label>
+          <input id="commissionRate" type="number" min="0" step="0.01" value="3" />
+        </div>
+
+        <div class="field">
+          <label for="monthFilter">Mes</label>
+          <select id="monthFilter" disabled>
+            <option value="ALL">Todos</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="companyFilter">Empresa</label>
+          <select id="companyFilter" disabled>
+            <option value="ALL">Todas</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="sellerFilter">Vendedor</label>
+          <select id="sellerFilter" disabled>
+            <option value="ALL">Todos</option>
+          </select>
+        </div>
+
+        <button id="processBtn" disabled>Procesar liquidación</button>
+      </section>
+
+      <section id="message" class="message" aria-live="polite"></section>
+
+      <section id="summary" class="card hidden">
+        <h2>Resumen general</h2>
+        <div class="kpis">
+          <div class="kpi">
+            <span>Total facturas</span>
+            <strong id="kpiInvoices">0</strong>
+          </div>
+          <div class="kpi">
+            <span>Subtotal acumulado</span>
+            <strong id="kpiSubtotal">$0</strong>
+          </div>
+          <div class="kpi">
+            <span>Comisión total</span>
+            <strong id="kpiCommission">$0</strong>
+          </div>
+          <div class="kpi">
+            <span>Retención total</span>
+            <strong id="kpiRetention">$0</strong>
+          </div>
+          <div class="kpi">
+            <span>Valor final a pagar</span>
+            <strong id="kpiNetCommission">$0</strong>
+          </div>
+        </div>
+      </section>
+
+      <section id="sellerSection" class="card hidden">
+        <h2>Consolidado de vendedores</h2>
+        <div class="table-wrap">
+          <table id="sellerTable">
+            <thead>
+              <tr>
+                <th>Vendedor ID</th>
+                <th>Vendedor</th>
+                <th>Empresas</th>
+                <th>Facturas</th>
+                <th>Subtotal</th>
+                <th>Comisión bruta</th>
+                <th>Descuento fijo</th>
+                <th>Base después descuento</th>
+                <th>Retención</th>
+                <th>Valor final a pagar</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="resultsSection" class="card hidden">
+        <h2>Liquidación por vendedor y mes</h2>
+        <div class="table-wrap">
+          <table id="resultsTable">
+            <thead>
+              <tr>
+                <th>Empresa</th>
+                <th>Mes</th>
+                <th>Vendedor</th>
+                <th>Facturas</th>
+                <th>Subtotal</th>
+                <th>% Comisión</th>
+                <th>Comisión bruta</th>
+                <th>Retención</th>
+                <th>Valor final a pagar</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="detailSection" class="card hidden">
+        <h2>Base organizada de facturas</h2>
+        <div class="table-wrap">
+          <table id="detailTable">
+            <thead>
+              <tr>
+                <th>CONSEC</th>
+                <th>EMPRESAREAL</th>
+                <th>EMPRESA</th>
+                <th>PREFIJO</th>
+                <th>NÚMERO DOC.</th>
+                <th>Fecha</th>
+                <th>ASESOR</th>
+                <th>NIT</th>
+                <th>Cliente</th>
+                <th>CARTERA</th>
+                <th>CIUDAD</th>
+                <th>VALOR</th>
+                <th>CANTIDAD</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
