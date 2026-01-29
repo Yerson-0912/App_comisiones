@@ -58,20 +58,3 @@ def obtener_reportes(tipo=None):
     reportes.sort(key=lambda x: x['fecha'], reverse=True)
     
     return reportes
-
-def marcar_descargado(reporte_id):
-    """Marca un reporte como descargado"""
-    historial = cargar_historial()
-    
-    for reporte in historial['reportes']:
-        if reporte['id'] == reporte_id:
-            reporte['descargado'] = True
-            break
-    
-    guardar_historial(historial)
-
-def eliminar_reporte(reporte_id):
-    """Elimina un reporte del historial"""
-    historial = cargar_historial()
-    historial['reportes'] = [r for r in historial['reportes'] if r['id'] != reporte_id]
-    guardar_historial(historial)

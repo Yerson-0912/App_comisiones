@@ -1,51 +1,12 @@
 """
 Funciones para enviar emails
 """
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
 
 # Configuración de email (cambiar antes de producción)
 EMAIL_SENDER = 'noreply@comisiones.com'
 EMAIL_PASSWORD = 'tu_contraseña_aqui'
 SMTP_SERVER = 'smtp.gmail.com'
 SMTP_PORT = 587
-
-def enviar_email(destinatario, asunto, cuerpo_html, cuerpo_texto=None):
-    """
-    Envía un email
-    
-    Args:
-        destinatario: Email del destinatario
-        asunto: Asunto del email
-        cuerpo_html: Cuerpo en HTML
-        cuerpo_texto: Cuerpo en texto plano (opcional)
-    """
-    try:
-        msg = MIMEMultipart('alternative')
-        msg['Subject'] = asunto
-        msg['From'] = EMAIL_SENDER
-        msg['To'] = destinatario
-        
-        if cuerpo_texto:
-            msg.attach(MIMEText(cuerpo_texto, 'plain'))
-        msg.attach(MIMEText(cuerpo_html, 'html'))
-        
-        # Nota: Para desarrollo, usa credenciales de Gmail con contraseña de app
-        # server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
-        # server.starttls()
-        # server.login(EMAIL_SENDER, EMAIL_PASSWORD)
-        # server.sendmail(EMAIL_SENDER, destinatario, msg.as_string())
-        # server.quit()
-        
-        # Por ahora, simular envío
-        print(f'EMAIL SIMULADO: Enviado a {destinatario}')
-        print(f'Asunto: {asunto}')
-        return True
-        
-    except Exception as e:
-        print(f'Error al enviar email: {str(e)}')
-        return False
 
 def enviar_email_recuperacion(email, username, token, link_base='http://localhost:5000'):
     """Envía email de recuperación de contraseña"""
@@ -82,4 +43,12 @@ def enviar_email_recuperacion(email, username, token, link_base='http://localhos
     © 2026 Panel de Comisiones
     """
     
-    return enviar_email(email, 'Restablecer contraseña - Panel de Comisiones', cuerpo_html, cuerpo_texto)
+    # Simular envío de email (en producción configurar SMTP)
+    try:
+        print(f'EMAIL SIMULADO: Enviado a {email}')
+        print(f'Asunto: Restablecer contraseña - Panel de Comisiones')
+        print(f'Link: {link_recuperacion}')
+        return True
+    except Exception as e:
+        print(f'Error al enviar email: {str(e)}')
+        return False

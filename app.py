@@ -17,10 +17,6 @@ app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['SECRET_KEY'] = 'tu_clave_secreta_aqui'
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB max
 
-# Credenciales de acceso (cámbialas antes de entregar)
-app.config['APP_USERNAME'] = 'admin'
-app.config['APP_PASSWORD'] = 'admin123'
-
 # Crear carpetas si no existen
 os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'ventas'), exist_ok=True)
 os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'recaudos'), exist_ok=True)
