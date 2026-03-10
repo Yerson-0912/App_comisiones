@@ -182,8 +182,21 @@ http://<tu-ip-o-host>:5000/reporte_comsiones_lamar/index.html
 
 ---
 
+---
+
 <div align="center">
 
-**Desarrollado para LAMAR OPTICAL SAS & INVERSIONES RUEDA SAS** 🏢
+## 👨‍💻 Desarrollador
+
+**Yerson Vargas Vargas**
+
+🏢 Soporte TI — LAMAR OPTICAL SAS
+
+[![GitHub](https://img.shields.io/badge/GitHub-Yerson--0912-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Yerson-0912)
+[![Gmail](https://img.shields.io/badge/Gmail-yervargas6@gmail.com-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:yervargas6@gmail.com)
+
+---
+
+*Desarrollado para **LAMAR OPTICAL SAS** & **INVERSIONES RUEDA SAS** 🏢*
 
 </div>
