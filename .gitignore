@@ -1,0 +1,4 @@
+# Ignorar todo excepto la carpeta reporte_comsiones_lamar
+/*
+!/.gitignore
+!/reporte_comsiones_lamar/
