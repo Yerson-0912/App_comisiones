@@ -56,10 +56,22 @@
           </select>
         </div>
 
+        <div class="field">
+          <label for="customerFilter">Cliente</label>
+          <select id="customerFilter" disabled>
+            <option value="ALL">Todos</option>
+          </select>
+        </div>
+
         <button id="processBtn" disabled>Procesar liquidación</button>
       </section>
 
       <section id="message" class="message" aria-live="polite"></section>
+
+      <section id="conditionsSection" class="card hidden">
+        <h2>Condiciones por vendedor</h2>
+        <div id="conditionsBody" class="conditions-grid"></div>
+      </section>
 
       <section id="summary" class="card hidden">
         <h2>Resumen general</h2>

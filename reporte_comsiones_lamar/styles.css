@@ -49,6 +49,35 @@ header p {
   gap: 6px;
 }
 
+.conditions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.condition-card {
+  border: 1px solid #dce4f0;
+  border-radius: 10px;
+  padding: 12px;
+  background: #f9fbff;
+}
+
+.condition-card h3 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+}
+
+.condition-card ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.condition-card li {
+  margin-bottom: 5px;
+  color: #2a3444;
+  font-size: 0.9rem;
+}
+
 label {
   font-size: 0.9rem;
   color: #354052;

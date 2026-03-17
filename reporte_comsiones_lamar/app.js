@@ -116,8 +116,12 @@ const commissionRateInput = document.getElementById("commissionRate");
 const monthFilter = document.getElementById("monthFilter");
 const companyFilter = document.getElementById("companyFilter");
 const sellerFilter = document.getElementById("sellerFilter");
+const customerFilter = document.getElementById("customerFilter");
 const processBtn = document.getElementById("processBtn");
 const message = document.getElementById("message");
+
+const conditionsSection = document.getElementById("conditionsSection");
+const conditionsBody = document.getElementById("conditionsBody");
 
 const summary = document.getElementById("summary");
 const sellerSection = document.getElementById("sellerSection");
@@ -135,9 +139,59 @@ const COMPANY_LAMAR = "LAMAR OPTICAL SAS";
 const COMPANY_ABELARDO = "ABELARDO";
 const SELLER_NATALIA_REYES = normalizeHeader("NATALIA REYES");
 const SELLER_KAREN_TORRADO = normalizeHeader("KAREN TORRADO");
+const SELLER_JOSE_ALFREDO = normalizeHeader("JOSE ALFREDO");
 const NATALIA_RETENTION_RATE = 4;
 const KAREN_MONTHLY_DISCOUNT = 950000;
 const KAREN_RETENTION_RATE = 6;
+const PRIVATE_CONDITIONS_SHORTCUT_KEY = "q";
+
+const SELLER_CONDITIONS = [
+  {
+    key: "natalia",
+    seller: "Natalia Reyes",
+    rules: [
+      "Cliente IMEVI: comision fija del 2%.",
+      "Clientes tipo FAMILIA: comision fija del 2%.",
+      "Clientes tipo NORMAL: escala mensual sobre subtotal (0% <= 5M, 2% <= 10M, 3% <= 20M, 4% <= 30M, 5% > 30M).",
+      `Retencion del ${NATALIA_RETENTION_RATE}% sobre la comision calculada.`,
+      "Clientes en CONSIGNACION (distintos de IMEVI): actualmente 0%.",
+    ],
+  },
+  {
+    key: "karen",
+    seller: "Karen Torrado",
+    rules: [
+      "Comision segun total mensual: 1.5% hasta 199.999.999; 2% hasta 249.999.999; 2.5% desde 250.000.000.",
+      `Descuento fijo mensual de ${formatMoney(KAREN_MONTHLY_DISCOUNT)} sobre la comision mensual.`,
+      `Retencion del ${KAREN_RETENTION_RATE}% sobre la base despues del descuento fijo.`,
+      "El descuento y la retencion mensual se distribuyen proporcionalmente por factura.",
+    ],
+  },
+  {
+    key: "jose",
+    seller: "Jose Alfredo",
+    rules: [
+      "Cliente Optica Colsanitas: si el total mensual de Colsanitas >= 45.000.000, aplica 2%.",
+      "Clientes de CONSIGNACION (excepto regla Colsanitas): 0%.",
+      "Ventas en Bogota (no consignacion): escala mensual 0% (<60M), 1% (>=60M), 1.5% (>=80M).",
+      "Fuera de Bogota y sin regla especial: 0%.",
+    ],
+  },
+  {
+    key: "jhonatan",
+    seller: "Jhonatan",
+    rules: [
+      "Actualmente no tiene reglas especiales configuradas.",
+      "Usa el porcentaje general digitado en el campo % Comision.",
+      "No tiene descuento fijo mensual configurado.",
+      "No tiene retencion especial configurada; por defecto aplica 0%.",
+    ],
+  },
+];
+
+const commandState = {
+  conditionsOpen: false,
+};
 
 const FAMILY_CUSTOMERS = [
   "GRUPO OPTICO DEL CARIBE RUEDA S.A.S",
@@ -181,6 +235,15 @@ const CONSIGNMENT_CUSTOMERS = [
   "IMEVI S.A.S",
 ];
 
+
+
+
+
+
+
+
+
+
 const CUSTOMER_CLASSIFICATION = new Map([
   ...FAMILY_CUSTOMERS.map((name) => [normalizeHeader(name), "FAMILIA"]),
   ...CONSIGNMENT_CUSTOMERS.map((name) => [normalizeHeader(name), "CONSIGNACION"]),
@@ -197,11 +260,14 @@ processBtn?.addEventListener("click", processLiquidation);
 monthFilter?.addEventListener("change", renderAll);
 companyFilter?.addEventListener("change", renderAll);
 sellerFilter?.addEventListener("change", renderAll);
+customerFilter?.addEventListener("change", renderAll);
 commissionRateInput?.addEventListener("input", () => {
   if (state.processedRows.length) {
     processLiquidation();
   }
 });
+
+document.addEventListener("keydown", handleGlobalShortcut);
 
 if (typeof XLSX === "undefined") {
   notify(
@@ -436,6 +502,99 @@ function isImeviCustomer(customerName) {
   return normalized.includes("imevi") || normalized.includes("imvei");
 }
 
+function isBogotaCity(cityName) {
+  const normalized = normalizeHeader(cityName);
+  return normalized.includes("bogota");
+}
+
+function isColsanitasCustomer(customerName) {
+  const normalized = normalizeHeader(customerName);
+  return normalized.includes("optica colsanitas");
+}
+
+function isJoseAlfredoSeller(sellerName) {
+  const normalized = normalizeHeader(sellerName);
+  if (!normalized) return false;
+  if (normalized === SELLER_JOSE_ALFREDO) return true;
+  return normalized.includes("jose alfredo");
+}
+
+function renderSellerConditions(filterKey = "all") {
+  if (!conditionsBody || !conditionsSection) return;
+
+  const keyNormalized = normalizeHeader(filterKey);
+  const rowsToRender =
+    !keyNormalized || keyNormalized === "all" || keyNormalized === "todos"
+      ? SELLER_CONDITIONS
+      : SELLER_CONDITIONS.filter((item) => item.key === keyNormalized);
+
+  conditionsBody.innerHTML = "";
+
+  if (!rowsToRender.length) {
+    conditionsBody.innerHTML = "<p>No hay condiciones para el vendedor solicitado.</p>";
+    conditionsSection.classList.remove("hidden");
+    return;
+  }
+
+  rowsToRender.forEach((item) => {
+    const card = document.createElement("article");
+    card.className = "condition-card";
+
+    const title = document.createElement("h3");
+    title.textContent = item.seller;
+    card.appendChild(title);
+
+    const list = document.createElement("ul");
+    item.rules.forEach((ruleText) => {
+      const li = document.createElement("li");
+      li.textContent = ruleText;
+      list.appendChild(li);
+    });
+
+    card.appendChild(list);
+    conditionsBody.appendChild(card);
+  });
+
+  conditionsSection.classList.remove("hidden");
+}
+
+function handleGlobalShortcut(event) {
+  const target = event.target;
+  const isTypingTarget =
+    target instanceof HTMLInputElement ||
+    target instanceof HTMLTextAreaElement ||
+    target instanceof HTMLSelectElement ||
+    target?.isContentEditable;
+
+  if (
+    event.altKey &&
+    !event.ctrlKey &&
+    !event.metaKey &&
+    normalizeHeader(event.key) === PRIVATE_CONDITIONS_SHORTCUT_KEY
+  ) {
+    if (isTypingTarget) return;
+
+    event.preventDefault();
+    commandState.conditionsOpen = !commandState.conditionsOpen;
+
+    if (commandState.conditionsOpen) {
+      renderSellerConditions("all");
+      notify("Panel privado abierto.");
+    } else {
+      conditionsSection?.classList.add("hidden");
+      notify("Panel privado cerrado.");
+    }
+
+    return;
+  }
+
+  if (event.key === "Escape" && commandState.conditionsOpen) {
+    commandState.conditionsOpen = false;
+    conditionsSection?.classList.add("hidden");
+    notify("Panel privado cerrado.");
+  }
+}
+
 function getNataliaNormalRate(totalSales) {
   if (totalSales <= 5000000) return 0;
   if (totalSales <= 10000000) return 2;
@@ -448,6 +607,12 @@ function getKarenRate(totalSales) {
   if (totalSales <= 199999999) return 1.5;
   if (totalSales <= 249999999) return 2;
   return 2.5;
+}
+
+function getJoseBogotaRate(totalSales) {
+  if (totalSales >= 80000000) return 1.5;
+  if (totalSales >= 60000000) return 1;
+  return 0;
 }
 
 function getRetentionRateForRow(row) {
@@ -478,11 +643,36 @@ function getInvoiceAggregationKey(row) {
   ].join("::");
 }
 
-function resolveRowCommissionRate(row, defaultRate, nataliaNormalTotalsByMonth, karenTotalsByMonth) {
+function resolveRowCommissionRate(
+  row,
+  defaultRate,
+  nataliaNormalTotalsByMonth,
+  karenTotalsByMonth,
+  joseBogotaTotalsByMonth,
+  joseColsanitasTotalsByMonth
+) {
   const sellerNormalized = normalizeHeader(row["Vendedor Nombre"]);
   if (sellerNormalized === SELLER_KAREN_TORRADO) {
     const monthlyTotal = karenTotalsByMonth.get(row.__monthKey) ?? 0;
     return getKarenRate(monthlyTotal);
+  }
+
+  if (isJoseAlfredoSeller(row["Vendedor Nombre"])) {
+    if (isColsanitasCustomer(row["Beneficiario Nombre"])) {
+      const monthlyColsanitasTotal = joseColsanitasTotalsByMonth.get(row.__monthKey) ?? 0;
+      if (monthlyColsanitasTotal >= 45000000) return 2;
+    }
+
+    if (row.__customerType === "CONSIGNACION") {
+      return 0;
+    }
+
+    if (isBogotaCity(row["Ciudad Nombre"])) {
+      const monthlyBogotaTotal = joseBogotaTotalsByMonth.get(row.__monthKey) ?? 0;
+      return getJoseBogotaRate(monthlyBogotaTotal);
+    }
+
+    return 0;
   }
 
   if (sellerNormalized !== SELLER_NATALIA_REYES) return defaultRate;
@@ -660,12 +850,26 @@ function processLiquidation() {
 
   const nataliaNormalTotalsByMonth = new Map();
   const karenTotalsByMonth = new Map();
+  const joseBogotaTotalsByMonth = new Map();
+  const joseColsanitasTotalsByMonth = new Map();
   preparedRows.forEach((row) => {
     const sellerNormalized = normalizeHeader(row["Vendedor Nombre"]);
 
     if (sellerNormalized === SELLER_KAREN_TORRADO) {
       const currentKaren = karenTotalsByMonth.get(row.__monthKey) ?? 0;
       karenTotalsByMonth.set(row.__monthKey, currentKaren + row.__subtotal);
+    }
+
+    if (isJoseAlfredoSeller(row["Vendedor Nombre"])) {
+      if (isBogotaCity(row["Ciudad Nombre"]) && row.__customerType !== "CONSIGNACION") {
+        const currentJoseBogota = joseBogotaTotalsByMonth.get(row.__monthKey) ?? 0;
+        joseBogotaTotalsByMonth.set(row.__monthKey, currentJoseBogota + row.__subtotal);
+      }
+
+      if (isColsanitasCustomer(row["Beneficiario Nombre"])) {
+        const currentJoseColsanitas = joseColsanitasTotalsByMonth.get(row.__monthKey) ?? 0;
+        joseColsanitasTotalsByMonth.set(row.__monthKey, currentJoseColsanitas + row.__subtotal);
+      }
     }
 
     if (sellerNormalized !== SELLER_NATALIA_REYES) return;
@@ -680,7 +884,9 @@ function processLiquidation() {
       row,
       commissionRate,
       nataliaNormalTotalsByMonth,
-      karenTotalsByMonth
+      karenTotalsByMonth,
+      joseBogotaTotalsByMonth,
+      joseColsanitasTotalsByMonth
     );
     const commissionValue = (row.__subtotal * rowCommissionRate) / 100;
     const retentionRate = getRetentionRateForRow(row);
@@ -871,24 +1077,39 @@ function populateFilters() {
     sellerFilter.appendChild(opt);
   });
   sellerFilter.disabled = sellers.length === 0;
+
+  const customers = [
+    ...new Set(state.processedRows.map((row) => String(row["Beneficiario Nombre"] ?? "").trim()).filter(Boolean)),
+  ].sort((a, b) => a.localeCompare(b));
+  customerFilter.innerHTML = `<option value="ALL">Todos</option>`;
+  customers.forEach((customer) => {
+    const opt = document.createElement("option");
+    opt.value = customer;
+    opt.textContent = customer;
+    customerFilter.appendChild(opt);
+  });
+  customerFilter.disabled = customers.length === 0;
 }
 
 function renderAll() {
   const selectedMonth = monthFilter.value || "ALL";
   const selectedCompany = companyFilter.value || "ALL";
   const selectedSeller = sellerFilter.value || "ALL";
+  const selectedCustomer = customerFilter.value || "ALL";
 
   const filteredOrganizedRows = state.organizedRows.filter((row) => {
     const organizedMonthKey = row.fecha ? monthKey(row.fecha) : "";
     if (selectedMonth !== "ALL" && organizedMonthKey !== selectedMonth) return false;
     if (selectedCompany !== "ALL" && row.empresaReal !== selectedCompany) return false;
     if (selectedSeller !== "ALL" && row.asesor !== selectedSeller) return false;
+    if (selectedCustomer !== "ALL" && row.cliente !== selectedCustomer) return false;
     return true;
   });
 
   const rowsForSellerConsolidated = state.processedRows.filter((row) => {
     if (selectedMonth !== "ALL" && row.__monthKey !== selectedMonth) return false;
     if (selectedSeller !== "ALL" && String(row["Vendedor Nombre"] ?? "").trim() !== selectedSeller) return false;
+    if (selectedCustomer !== "ALL" && String(row["Beneficiario Nombre"] ?? "").trim() !== selectedCustomer) return false;
     return true;
   });
 
@@ -896,15 +1117,11 @@ function renderAll() {
     if (selectedMonth !== "ALL" && row.__monthKey !== selectedMonth) return false;
     if (selectedCompany !== "ALL" && row.__company !== selectedCompany) return false;
     if (selectedSeller !== "ALL" && String(row["Vendedor Nombre"] ?? "").trim() !== selectedSeller) return false;
+    if (selectedCustomer !== "ALL" && String(row["Beneficiario Nombre"] ?? "").trim() !== selectedCustomer) return false;
     return true;
   });
 
-  const grouped = state.groupedRows.filter((row) => {
-    if (selectedMonth !== "ALL" && row.monthKey !== selectedMonth) return false;
-    if (selectedCompany !== "ALL" && row.company !== selectedCompany) return false;
-    if (selectedSeller !== "ALL" && row.sellerName !== selectedSeller) return false;
-    return true;
-  });
+  const grouped = groupBySellerAndMonth(detailRows);
 
   renderSummary(detailRows, filteredOrganizedRows);
   renderSellerTable(rowsForSellerConsolidated);
@@ -1045,6 +1262,8 @@ function resetOutputs() {
   companyFilter.innerHTML = `<option value="ALL">Todas</option>`;
   sellerFilter.disabled = true;
   sellerFilter.innerHTML = `<option value="ALL">Todos</option>`;
+  customerFilter.disabled = true;
+  customerFilter.innerHTML = `<option value="ALL">Todos</option>`;
 
   summary.classList.add("hidden");
   sellerSection.classList.add("hidden");
